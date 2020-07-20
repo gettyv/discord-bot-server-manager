@@ -1,0 +1,9 @@
+{
+  "bot_token" : "",
+  "public_ip" : "",
+  "game_library" : [""],
+  "minecraft_port" : "",
+  "terraria_port" : "",
+  "mc_modded_port" : "",
+  "t_modded_port" : ""
+}
