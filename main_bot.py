@@ -9,13 +9,26 @@ client = commands.Bot(command_prefix = '$')
 with open('bot_config.json') as f:
     config = json.load(f)
 
-game_library = config['game_library']
+class Game:
+    def __init__(self, title, port, query):
+        self.port = port
+        self.title = title
+        self.active = False
+        self.has_query = query
+        self.start_script = './' + self.title + '.sh'
+
+game_library = {}
+for title, info in config['game_library'].items():
+    if info[1]:
+        query_enabled = True
+    else:
+        query_enabled = False
+    port = info [0]
+    game_library[title] = Game(title, port, query_enabled)
+
 bot_token = config['bot_token']
 public_ip = config['public_ip']
-#Initial values of key variables
-server_status = False
-current_game = None
-current_game_port = None
+
 #Sends message to console upon loading in and sets listening status for bot
 @client.event
 async def on_ready():

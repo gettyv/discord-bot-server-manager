@@ -2,7 +2,7 @@ import subprocess
 from mcstatus import MinecraftServer
 
 def start_server(game):
-    """Starts server when given a game"""
+    """Starts server when given a game object"""
     global server_process
     server_process = subprocess.Popen('./' + game + '.sh', stdin = subprocess.PIPE, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
     print(f'Starting {game} server process')
