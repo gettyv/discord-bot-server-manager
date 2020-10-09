@@ -10,21 +10,27 @@ with open('bot_config.json') as f:
     config = json.load(f)
 
 class Game:
-    def __init__(self, title, port, query):
+    def __init__(self, title, port, query, exit_command):
         self.port = port
         self.title = title
         self.active = False
         self.has_query = query
+        self.exit_command = exit_command
         self.start_script = './' + self.title + '.sh'
+    
+    def start_server(self):
+        print(f'Starting {self.title} server')
+        server_command.start_server(self)
 
 game_library = {}
 for title, info in config['game_library'].items():
+    port = info [0]
     if info[1]:
         query_enabled = True
     else:
         query_enabled = False
-    port = info [0]
-    game_library[title] = Game(title, port, query_enabled)
+    exit_command = info[2]
+    game_library[title] = Game(title, port, query_enabled, exit_command)
 
 bot_token = config['bot_token']
 public_ip = config['public_ip']
@@ -37,37 +43,32 @@ async def on_ready():
     await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="$help"))
 
 @client.command()
-async def start(ctx, game):
+async def start(ctx, game_title):
     """Starts server for the given game"""
-    global server_status
-    global current_game
-    global current_game_port
-    if not server_status:
-        if game in game_library:
-            await ctx.send(f'Starting {game} server')
-            server_command.start_server(game)
-            current_game = game
-            current_game_port = config[current_game + "_port"]
-            server_status = True
+    try:
+        game = game_library[game_title]
+        if game.active:
+            await ctx.send(f'{game.title} server already running')
         else:
-            await ctx.send(f'{game} is not supported')
-    else:
-        await ctx.send(f'{current_game} server already running')
+            await ctx.send(f'Starting {game} server')
+            game.start_server()
+            game.active = True
+    except KeyError:
+        await ctx.send(f'{game.title} is not supported or mistyped')
 
 @client.command()
-async def stop(ctx):
+async def stop(ctx, game_title):
     """Stops currently running server if there is one running"""
-    global server_status
-    global current_game
-    global current_game_port
-    if server_status:
-        await ctx.send(f'Stopping {current_game} server')
-        server_command.stop_server(current_game)
-        current_game = None
-        current_game_port = None
-        server_status = False
-    else:
-        await ctx.send('No server currently running')
+    try:
+        game = game_library[game_title]
+        if game.active:
+            await ctx.send(f'Stopping {game.title} server')
+            game.stop_server()
+            game.active = False
+        else:
+            await ctx.send(f'{game.title} is not currently running')
+    except KeyError:
+        await ctx.send(f'{game.title} is not supported or mistyped')
 
 @client.command()
 async def hello(ctx):
@@ -78,15 +79,13 @@ async def hello(ctx):
 async def library(ctx):
     """Lists available games"""
     output = 'Available games: '
-    for game in game_library:
-        if game == current_game:
-            game = '*' + game + '*' #This will highlight the current game
-        output = output + game + ', '
+    for game_title in game_library:
+        output = output + game_title + ', '
     await ctx.send(output)
 
 @client.command()
 async def status(ctx):
-    """Checks the status of the currently running server"""
+    """Checks the status of the currently running servers"""
     if server_status:
         if current_game in ['minecraft', 'mc_modded']:
             await ctx.send(server_command.query_server(current_game, public_ip, current_game_port))
@@ -97,7 +96,10 @@ async def status(ctx):
 
 @client.command()
 async def ip(ctx):
-    """Returns IP and port info for running server"""
+    """Returns IP and port info for running servers"""
+    for title, game in game_library.items():
+        if game.active:
+            
     if server_status:
         await ctx.send(f'Info for {current_game} server - IP: {public_ip} | Port: {current_game_port}')
     else:
