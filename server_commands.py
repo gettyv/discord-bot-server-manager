@@ -9,7 +9,7 @@ def start_server(game):
 
 def stop_server(game):
     """Communicates with server process to stop server when given a game object"""
-    print(f'Attempting to stop {game} server process')
+    print(f'Attempting to stop {game.title} server process')
     game.server_process.communicate(str.encode(game.exit_command))
 
 def query_server(game):

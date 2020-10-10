@@ -22,6 +22,10 @@ class Game:
         print(f'Starting {self.title} server')
         server_command.start_server(self)
 
+    def stop_server(self):
+        print(f'Stopping {game.title} server')
+        server_command.stop_server(self)
+
 game_library = {}
 for title, info in config['game_library'].items():
     port = info [0]
@@ -86,30 +90,43 @@ async def library(ctx):
 @client.command()
 async def status(ctx):
     """Checks the status of the currently running servers"""
-    if server_status:
-        if current_game in ['minecraft', 'mc_modded']:
-            await ctx.send(server_command.query_server(current_game, public_ip, current_game_port))
+    output = ''
+    for title, game in game_library.items():
+        if game.active:
+            status = '**online**'
         else:
-            await ctx.send(f'There is currently a {current_game} server running')
-    else:
-        await ctx.send('No active server running')
+            status = '**offline**'
+        output = output + f'{game.title} server is currently {status} \n'
+    # if server_status:
+    #     if current_game in ['minecraft', 'mc_modded']:
+    #         await ctx.send(server_command.query_server(current_game, public_ip, current_game_port))
+    #     else:
+    #         await ctx.send(f'There is currently a {current_game} server running')
+    # else:
+    #     await ctx.send('No active server running')
 
 @client.command()
 async def ip(ctx):
     """Returns IP and port info for running servers"""
+    output = ''
     for title, game in game_library.items():
         if game.active:
-            
-    if server_status:
-        await ctx.send(f'Info for {current_game} server - IP: {public_ip} | Port: {current_game_port}')
+            output = output + f'{game.title} : {global_ip} : {game.port}\n'
+    if output:
+        await ctx.send(output)
     else:
         await ctx.send('No server running to get IP of')
+        
 
 @client.command()
 async def exit(ctx):
     """Exits the bot"""
-    if server_status:
-        await ctx.send('Cannot exit as there is an active server running!')
+    active_games = []
+    for title, game in game_library.items():
+        if game.active:
+            active_games.append(game.title)
+    if active_games:
+        await ctx.send(f'Cannot exit as {active_games} server(s) are running')
     else:
         await ctx.send('Goodbye!')
         await client.close()
