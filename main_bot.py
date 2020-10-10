@@ -23,7 +23,7 @@ class Game:
         server_command.start_server(self)
 
     def stop_server(self):
-        print(f'Stopping {game.title} server')
+        print(f'Stopping {self.title} server')
         server_command.stop_server(self)
 
 game_library = {}
@@ -54,11 +54,11 @@ async def start(ctx, game_title):
         if game.active:
             await ctx.send(f'{game.title} server already running')
         else:
-            await ctx.send(f'Starting {game} server')
+            await ctx.send(f'Starting {game.title} server')
             game.start_server()
             game.active = True
     except KeyError:
-        await ctx.send(f'{game.title} is not supported or mistyped')
+        await ctx.send(f'{game_title} is not supported or mistyped')
 
 @client.command()
 async def stop(ctx, game_title):
@@ -72,7 +72,7 @@ async def stop(ctx, game_title):
         else:
             await ctx.send(f'{game.title} is not currently running')
     except KeyError:
-        await ctx.send(f'{game.title} is not supported or mistyped')
+        await ctx.send(f'{game_title} is not supported or mistyped')
 
 @client.command()
 async def hello(ctx):
@@ -97,6 +97,7 @@ async def status(ctx):
         else:
             status = '**offline**'
         output = output + f'{game.title} server is currently {status} \n'
+    await ctx.send(output)
     # if server_status:
     #     if current_game in ['minecraft', 'mc_modded']:
     #         await ctx.send(server_command.query_server(current_game, public_ip, current_game_port))
@@ -111,7 +112,7 @@ async def ip(ctx):
     output = ''
     for title, game in game_library.items():
         if game.active:
-            output = output + f'{game.title} : {global_ip} : {game.port}\n'
+            output = output + f'{game.title} : {public_ip} : {game.port}\n'
     if output:
         await ctx.send(output)
     else:
