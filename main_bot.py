@@ -94,6 +94,8 @@ async def status(ctx):
     for title, game in game_library.items():
         if game.active:
             status = '**online**'
+            if game.has_query:
+                await ctx.send(server_command.query_server(game))
         else:
             status = '**offline**'
         output = output + f'{game.title} server is currently {status} \n'
